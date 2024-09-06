@@ -99,7 +99,7 @@ def convert(infile, outfile, config):
         write(key, shared.sd[key], lambda a,b: default_cast )
 
     log("(d) Casting layers")
-    for i, layer in tqdm(enumerate(layers)):
+    for i, layer in enumerate(tqdm(layers)):
         cast = layer_casts[i]
         prefix = f"double_blocks.{i}." if i<19 else f"single_blocks.{i-19}."
         sd = layer.state_dict()
