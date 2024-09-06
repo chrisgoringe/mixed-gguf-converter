@@ -5,6 +5,8 @@ In otherwords, relative to the directory where this file is, `../ComfyUI` or `..
 
 It should be run in the ComfyUI virtual environment.
 
+A collection of already converted files can be found in my [hugging face](https://huggingface.co/ChrisGoringe/MixedQuantFlux) repository.
+
 ## Usage
 
 ```
