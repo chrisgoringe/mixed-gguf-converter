@@ -26,7 +26,16 @@ python convert.py [-h] [--verbose=n] [--load [flux_model].safetensors] [--config
 Configs are of the form `XY_Z` or `Y_Z` (X, Y and Z being digits), and represent the approximate reduction in GB of the 22GB model. So 14_1
 produces a model just under 8GB in size.
 
-The output files should be places in `models/unet` and can be loaded with [GGUF Loader Node](https://github.com/city96/ComfyUI-GGUF)
+```
+Configurations current available are:
+ 9_0 might just fit on a 16GB card
+10_6 good balance for 16GB card
+12_0 roughly same size as 8bit model
+14_1 should work on 12GB card
+15_2 full Q4_1 quantization - smallest currently available
+```
+
+The output files should be placed in `models/unet` and can be loaded with [GGUF Loader Node](https://github.com/city96/ComfyUI-GGUF)
 
 ## Optimiser
 
