@@ -134,7 +134,7 @@ def main():
     for i, config in enumerate(configs):
         outfile = (os.path.splitext(args.load)[0] + f"_mx{config}.gguf")
         log("----------------------------------------------------------------------------", log.ALWAYS)
-        log(f"Conversion {i+1}/{len(configs)+1} - Converting {args.load} to {outfile}", log.ALWAYS)
+        log(f"Conversion {i+1}/{len(configs)} - Converting {args.load} to {outfile}", log.ALWAYS)
         log("----------------------------------------------------------------------------", log.ALWAYS)
         convert(infile  = args.load, outfile = outfile, config  = CONFIGURATIONS[config])
 
