@@ -1,7 +1,6 @@
-import os, math, yaml
+import os, math, yaml, json
 from dataclasses import dataclass
 from argparse import ArgumentParser
-from collections import namedtuple
 
 casts_and_bits = {
     '16bit':16,
@@ -133,18 +132,60 @@ bits_per_gigabyte = 8*math.pow(2,30)
 def bits_to_gbytes(bits)->float: return bits/bits_per_gigabyte
 def gybtes_to_bits(gb): return gb*bits_per_gigabyte
 
-def get_optimised_casting(gb_wanted):
+def get_optimised_casting(gb_wanted) -> list[CastingStep]:
     selected, bits_saved, cost = select_steps(get_sorted_steps(), bits_wanted=gybtes_to_bits(gb_wanted))  
     merged = merge(selected)
-    for selection in merged:
-        if selection:
-            print(f"Cast layer {selection.layer} to {selection.to_cast}")
+    #for selection in merged:
+    #    if selection:
+    #        print(f"Cast layer {selection.layer} to {selection.to_cast}")
     print(f"Full model is {bits_to_gbytes(total_bits):>6.3f} GB")
     print(f"{bits_to_gbytes(bits_saved):>6.3f} GB saved at cost of {cost:<8.3f}")
+    return merged, bits_to_gbytes(bits_saved)
+
+def to_comma_list(values:list[int]):
+    strings = []
+    sequence_start = None
+    previous       = None
+    for value in values + [99999,]:
+        if previous is None:
+            sequence_start = value
+        elif value == previous+1:
+            pass
+        else:
+            if previous == sequence_start: strings.append(str(sequence_start))
+            else: strings.append(f"{sequence_start}-{previous}")
+            sequence_start = value
+        previous       = value
+    return ", ".join(strings)
+
+def convert_to_config(casting:list[CastingStep]):
+    cast_to_layer_map:dict[str,list[int]] = {}
+
+    for layer, selection in enumerate(casting):
+        cast = selection.to_cast if selection is not None else 'BF16'
+        if cast not in cast_to_layer_map: cast_to_layer_map[cast] = []
+        cast_to_layer_map[cast].append(layer)
+
+    casting_list = list( {'layers':to_comma_list(cast_to_layer_map[cast]), 'castto':cast} for cast in cast_to_layer_map )
+    return casting_list
 
 if __name__=='__main__': 
     a = ArgumentParser()
-    a.add_argument('--gb', type=float, help="Approximate number of GB to remove", required=True)
+    a.add_argument('--gb', type=float, help="Approximate number of GB to remove")
     args = a.parse_args()
-    get_optimised_casting(args.gb)
+    try: gb = args.gb
+    except: 
+        print("--gb must be specified")
+        exit()
+    casting, gbs = get_optimised_casting(args.gb)
 
+    y = convert_to_config(casting)
+    tenths = math.floor( 10*gbs + 0.5 )
+    name = f"{tenths//10}_{tenths%10}"
+    print(f"\n    \"{name}\" : " + "{")
+    print("        'casts': [")
+    for cast in y: print("            {'layers': '" + cast['layers'] + "', 'castto': '" + cast['castto'] + "'},")
+    print("        ],")
+    print("        'notes': 'replace this with a comment!'")
+    print("    },")
+    

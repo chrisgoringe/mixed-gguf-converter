@@ -35,15 +35,47 @@ Configurations current available are:
 15_2 full Q4_1 quantization - smallest currently available
 ```
 
-The output files should be placed in `models/unet` and can be loaded with [GGUF Loader Node](https://github.com/city96/ComfyUI-GGUF)
+The output files should be placed in `models/unet` and can be loaded with [GGUF Loader Node](https://github.com/city96/ComfyUI-GGUF).
 
-## Optimiser
+Be aware this can take a long time to run, but it gives you progress reports...
 
-A script to produce configs. WIP.
+## Creating new configurations
+
+If you want to try a different model reduction, you can quickly create it with `optimization.py`
+
+To make an optimization that removes `xx.yy` GB from the model:
+
+```
+python optimization.py --gb xx.yy
+```
+
+The output will look like this:
+
+```
+Full model is 22.043 GB
+ 4.161 GB saved at cost of 38.600
+
+    "4_2" : {
+        'casts': [
+            {'layers': '0-23', 'castto': 'BF16'},
+            {'layers': '24-38, 40-55', 'castto': 'Q8_0'},
+            {'layers': '39, 56', 'castto': 'Q5_1'},
+        ],
+        'notes': 'replace this with a comment!'
+    },
+```
+Ignoring the first two lines (and the blank line), you have a configuration option that can be added to `convert.py` as instructed in the code (around line 50).
+
+### Note
+
+This example used `--gb 4.1` - but it actually removed 4.16, so is named `4_2`. The script works by calculating a sequence of possible quantizations, sorting them from the lowest to highest values of `error_induced / bits_saved`, and then applies them in order until the desired number of GB have been removed.
+
+### GB
+
+I use `1 GB = 2^30 bytes`, not `1GB = 10^3 bytes`. There's about a 7% difference - that's why I report the model as 22.043GB, not 24.
 
 ## Future considerations
 
 - measurement of inference speed for different quants
 - possible inclusion of `torch.float8_e3m4fn` (significantly less accurate that GGUF, but also faster)
 - work out how to include other (more recent, better) quants like `Q5_K_S`, `Q5_K_S`, `Q5_K_S`
-- document the optimiser script and integrate it so it produces configs

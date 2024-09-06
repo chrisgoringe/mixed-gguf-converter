@@ -49,6 +49,9 @@ CONFIGURATIONS = {
         ],
         'notes': 'full Q4_1 quantization - smallest currently available'
     },
+    # Insert configs created by optimization.py in here. Note that in python the indentation matters, so copy and paste with care
+
+    # ------
 }
 
 HELP_TEXT = '''Produce a mixed gguf model from a flux safetensors. 
