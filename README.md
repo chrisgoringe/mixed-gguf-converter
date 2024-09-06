@@ -29,3 +29,10 @@ The output files should be places in `models/unet` and can be loaded with [GGUF 
 ## Optimiser
 
 A script to produce configs. WIP.
+
+## Future considerations
+
+- measurement of inference speed for different quants
+- possible inclusion of `torch.float8_e3m4fn` (significantly less accurate that GGUF, but also faster)
+- work out how to include other (more recent, better) quants like `Q5_K_S`, `Q5_K_S`, `Q5_K_S`
+- document the optimiser script and integrate it so it produces configs
