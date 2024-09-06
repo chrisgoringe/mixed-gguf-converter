@@ -3,7 +3,11 @@
 This repository must be installed next to an install of ComfyUI to work. 
 In otherwords, relative to the directory where this file is, `../ComfyUI` or `../ComfyUI_windows_portable` need to exist.
 
-It should be run in the ComfyUI virtual environment.
+It should be run in the ComfyUI virtual environment. You may need to install or update gguf:
+
+```
+pip install gguf --update
+```
 
 A collection of already converted files can be found in my [hugging face](https://huggingface.co/ChrisGoringe/MixedQuantFlux) repository.
 

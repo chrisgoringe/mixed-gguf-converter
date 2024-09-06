@@ -6,4 +6,5 @@ try:
     from comfy.ldm.flux.layers import DoubleStreamBlock, SingleStreamBlock
 except:
     print("The mixed-gguf-converter folder needs to be next to (in the same directory as) the ComfyUI or ComfyUI_windows_portable folder.")
+    print("Another possibel cause is that gguf is not installed or up to date. Try pip install gguf --update.")
     exit()
