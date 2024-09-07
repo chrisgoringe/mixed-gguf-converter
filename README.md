@@ -14,7 +14,7 @@ A collection of already converted files can be found in my [hugging face](https:
 ## Usage
 
 ```
-python convert.py [-h] [--verbose=n] [--load [flux_model].safetensors] [--config xx_x] [--config xx_x] [--config xx_x]
+python convert.py [-h] [--verbose=n] [--load [flux_model].safetensors] [--config x_x] [--config x_x] [--config x_x]
 ```
 
 - `--verbose` for n = 0,1,2 controls the output verbosity
@@ -27,16 +27,14 @@ python convert.py [-h] [--verbose=n] [--load [flux_model].safetensors] [--config
     - Default is to apply all available configurations in turn.
 - `-h` can be used to list the help, including the config options available (and no conversion is done)
 
-Configs are of the form `XY_Z` or `Y_Z` (X, Y and Z being digits), and represent the approximate reduction in GB of the 22GB model. So 14_1
-produces a model just under 8GB in size.
-
+Configs are of the form `Y_Z` (Y and Z being digits) for an average number of bits per parameter of `Y.Z`.
 ```
 Configurations current available are:
- 9_0 might just fit on a 16GB card
-10_6 good balance for 16GB card
-12_0 roughly same size as 8bit model
-14_1 should work on 12GB card
-15_2 full Q4_1 quantization - smallest currently available
+ 9_6 might just fit on a 16GB card
+ 8_4 good balance for 16GB card
+ 7_4 roughly same size as 8bit model
+ 5_9 should work on 12GB card
+ 5_1 full Q4_1 quantization - smallest currently available
 ```
 
 The output files should be placed in `models/unet` and can be loaded with [GGUF Loader Node](https://github.com/city96/ComfyUI-GGUF).
@@ -59,7 +57,7 @@ The output will look like this:
 Full model is 22.043 GB
  4.161 GB saved at cost of 38.600
 
-    "4_2" : {
+    "CONFIG_NAME" : {
         'casts': [
             {'layers': '0-23', 'castto': 'BF16'},
             {'layers': '24-38, 40-55', 'castto': 'Q8_0'},
@@ -70,13 +68,17 @@ Full model is 22.043 GB
 ```
 Ignoring the first two lines (and the blank line), you have a configuration option that can be added to `convert.py` as instructed in the code (around line 50).
 
-### Note
+You will want the change `CONFIG_NAME` to reflect the actual size. 
+To measure a gguf file (after converting it), `python measure.py --f MY_FILE.gguf`
 
-This example used `--gb 4.1` - but it actually removed 4.16, so is named `4_2`. The script works by calculating a sequence of possible quantizations, sorting them from the lowest to highest values of `error_induced / bits_saved`, and then applies them in order until the desired number of GB have been removed.
+```
+python measure.py --file flux1-dev_mx8_4.gguf 
+flux1-dev_mx8_4.gguf has 8.4 bits per parameter
+```
 
-### GB
+## Notes
 
-I use `1 GB = 2^30 bytes`, not `1GB = 10^3 bytes`. There's about a 7% difference - that's why I report the model as 22.043GB, not 24.
+The script works by calculating a sequence of possible quantizations, sorting them from the lowest to highest values of `error_induced / bits_saved`, and then applies them in order until the desired number of GB have been removed.
 
 ## Future considerations
 

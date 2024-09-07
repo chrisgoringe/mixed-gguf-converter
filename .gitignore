@@ -161,3 +161,4 @@ cython_debug/
 *.safetensors
 *.gguf
 .vscode/launch.json
+rename.py

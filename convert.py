@@ -8,8 +8,9 @@ from argparse import ArgumentParser
 import os, time
 from tqdm import tqdm
 
+
 CONFIGURATIONS = {
-    "9_0" : { 
+    "9_6" : { 
         'casts': [
             {'layers': '0-10',             'castto': 'BF16'},
             {'layers': '11-14, 54',        'castto': 'Q8_0'},
@@ -18,7 +19,7 @@ CONFIGURATIONS = {
         ],
         'notes': 'might just fit on a 16GB card'
     },
-    "10_6" : { 
+    "8_4" : { 
         'casts': [
             {'layers': '0-4, 10',      'castto': 'BF16'},
             {'layers': '5-9, 11-14',   'castto': 'Q8_0'},
@@ -27,7 +28,7 @@ CONFIGURATIONS = {
         ],
         'notes': 'good balance for 16GB card'
     },
-    "12_0" : {
+    "7_4" : {
         'casts': [
             {'layers': '0-2',                  'castto': 'BF16'},
             {'layers': '5, 7-12',              'castto': 'Q8_0'},
@@ -36,14 +37,14 @@ CONFIGURATIONS = {
         ],
         'notes': 'roughly same size as 8bit model'
     },
-    "14_1" : {
+    "5_9" : {
         'casts': [
             {'layers': '0-25, 27-28, 44-54', 'castto': 'Q5_1'},
             {'layers': '26, 29-43, 55-56',   'castto': 'Q4_1'},
         ],
         'notes': 'should work on 12GB card'
     },
-    "15_2" : {
+    "5_1" : {
         'casts': [
             {'layers': '0-56', 'castto': 'Q4_1'},
         ],

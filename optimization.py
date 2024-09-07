@@ -180,9 +180,9 @@ if __name__=='__main__':
     casting, gbs = get_optimised_casting(args.gb)
 
     y = convert_to_config(casting)
-    tenths = math.floor( 10*gbs + 0.5 )
-    name = f"{tenths//10}_{tenths%10}"
-    print(f"\n    \"{name}\" : " + "{")
+    #tenths = math.floor( 10*gbs + 0.5 )
+    #name = f"{tenths//10}_{tenths%10}"
+    print(f"\n    \"CONFIG_NAME\" : " + "{")
     print("        'casts': [")
     for cast in y: print("            {'layers': '" + cast['layers'] + "', 'castto': '" + cast['castto'] + "'},")
     print("        ],")
