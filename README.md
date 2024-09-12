@@ -6,7 +6,7 @@ In otherwords, relative to the directory where this file is, `../ComfyUI` or `..
 It should be run in the ComfyUI virtual environment. You may need to install or update gguf:
 
 ```
-pip install gguf --update
+pip install gguf --upgrade
 ```
 
 A collection of already converted files can be found in my [hugging face](https://huggingface.co/ChrisGoringe/MixedQuantFlux) repository.
