@@ -171,12 +171,9 @@ def convert_to_config(casting:list[CastingStep]):
 
 if __name__=='__main__': 
     a = ArgumentParser()
-    a.add_argument('--gb', type=float, help="Approximate number of GB to remove")
+    a.add_argument('--gb', type=float, required=True, help="Approximate number of GB to remove")
     args = a.parse_args()
-    try: gb = args.gb
-    except: 
-        print("--gb must be specified")
-        exit()
+
     casting, gbs = get_optimised_casting(args.gb)
 
     y = convert_to_config(casting)

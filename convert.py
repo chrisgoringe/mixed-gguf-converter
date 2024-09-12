@@ -2,7 +2,7 @@
 from modules.qtensor import QuantizedTensor
 from modules.utils import shared, layer_iteratable_from_string, log
 from modules.loader import load_layer_stack
-from gguf import GGMLQuantizationType, GGUFWriter
+from gguf import GGMLQuantizationType, GGUFWriter, GGUFReader, ReaderTensor
 import torch
 from argparse import ArgumentParser
 import os, time
@@ -50,6 +50,14 @@ CONFIGURATIONS = {
         ],
         'notes': 'full Q4_1 quantization - smallest currently available'
     },
+    "5_3" : {
+        'casts': [
+            {'layers': '0-2, 4, 6, 8-9, 11-13, 49-54', 'castto': 'Q5_1'},
+            {'layers': '3, 5, 7, 10, 14, 16-29, 32-33, 42, 44-48, 55-56', 'castto': 'Q4_1'},
+            {'layers': '15, 30-31, 34-41, 43', 'castto': 'patch:flux1-dev-Q3_K_S.gguf'},
+        ],
+        'notes': 'Requires a Q3_K_S quantized version to patch from '
+    },
     # Insert configs created by optimization.py in here. Note that in python the indentation matters, so copy and paste with care
 
     # ------
@@ -57,7 +65,7 @@ CONFIGURATIONS = {
 
 HELP_TEXT = '''Produce a mixed gguf model from a flux safetensors. 
 Usage:
-python convert.py [--verbose=n] [--load [flux_model].safetensors] [--config xx_x] [--config xx_x] [--config xx_x]
+python convert.py [--verbose=n] [--load [flux_model].safetensors] [--config x_x] [--config x_x] [--config x_x]
 
 Default for load is "./flux1-dev.safetensors". Ideally this is the full 16bit version.
 
@@ -68,16 +76,19 @@ Files will be saved in the same location as the loaded file, as '[flux_model]_mx
 They can be loaded in Comfy using the nodes at https://github.com/city96/ComfyUI-GGUF by
 putting them in your models/unet directory.
 
-The config number is an approximate number of GB removed from the full 16 bit model.  
+The config number represents the average bits per parameter across the full model.  
 
 Configurations current available are:
 ''' + "\n".join(f"{x:>4} {CONFIGURATIONS[x]['notes']}" for x in CONFIGURATIONS)
 
 VERBOSITY = 0
 
+MODEL_BASE_DIR = None
+def modelpath(model): return os.path.join(MODEL_BASE_DIR, model) if MODEL_BASE_DIR else model
+
 def convert(infile, outfile, config):
     default_cast = 'F32'
-    shared.set_model(infile, dump_existing=True)
+    shared.set_model(modelpath(infile), dump_existing=True)
         
     log ("(a) Getting layer casts")
     layer_casts = [default_cast]*57
@@ -89,14 +100,19 @@ def convert(infile, outfile, config):
     log ("(b) Loading layer stack")
     layers = load_layer_stack()
 
-    writer = GGUFWriter(outfile, "flux", use_temp_file=True)
+    writer = GGUFWriter(modelpath(outfile), "flux", use_temp_file=True)
+    patchfiles:dict[str, list[str]] = {}
     def write(key, tensor:torch.Tensor, cast_chooser:callable):
-        cast = cast_chooser(key, tensor)
-        qtype = getattr(GGMLQuantizationType, cast)
-        qt = QuantizedTensor.from_unquantized_tensor(tensor, qtype)
-        writer.add_tensor(key, qt._tensor.numpy(), raw_dtype=qtype)
-        writer.add_array(f"comfy.gguf.orig_shape.{key}", tensor.shape)
-        log(f"{key:>50} {cast:<20}", log.DETAILS)
+        cast:str = cast_chooser(key, tensor)
+        if cast.startswith('patch:'):
+            if (patchfile := cast[6:]) not in patchfiles: patchfiles[patchfile] = []
+            patchfiles[patchfile].append(key)
+        else:
+            qtype = getattr(GGMLQuantizationType, cast)
+            qt = QuantizedTensor.from_unquantized_tensor(tensor, qtype)
+            writer.add_tensor(key, qt._tensor.numpy(), raw_dtype=qtype)
+            writer.add_array(f"comfy.gguf.orig_shape.{key}", tensor.shape)
+            log(f"{key:>50} {cast:<20}", log.DETAILS)
     
     log("(c) Casting leftovers")
     for key in shared.sd: 
@@ -114,7 +130,16 @@ def convert(infile, outfile, config):
                 return cast
         for key in sd: write( prefix+key, sd[key], get_cast)
 
-    log(f"(e) Writing to {outfile}")
+    log("(e) Applying patch: entries")
+    for patchfile, keys in patchfiles.items():
+        reader = GGUFReader(modelpath(patchfile))
+        tensor:ReaderTensor
+        for tensor in reader.tensors:
+            if tensor.name in keys:
+                writer.add_tensor(tensor.name, tensor.data, raw_dtype=tensor.tensor_type)
+                log(f"{tensor.name:>50} {tensor.tensor_type.name:<20}", log.DETAILS)
+
+    log(f"(f) Writing to {outfile}")
     writer.write_header_to_file()
     writer.write_kv_data_to_file()
     writer.write_tensors_to_file()
@@ -126,11 +151,15 @@ def main():
     a.add_argument('--load', default="flux1-dev.safetensors")
     a.add_argument('--config', action="append", required=False, choices=[k for k in CONFIGURATIONS])
     a.add_argument('--verbose', type=int, default=1)
+    a.add_argument('--model_dir', help="base directory for all models")
 
     args = a.parse_args()
     if args.help:
         print(HELP_TEXT)
         return
+    
+    global MODEL_BASE_DIR
+    MODEL_BASE_DIR = args.model_dir
     
     log.set_log_level(args.verbose)
     

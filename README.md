@@ -80,6 +80,19 @@ flux1-dev_mx8_4.gguf has 8.4 bits per parameter
 
 The script works by calculating a sequence of possible quantizations, sorting them from the lowest to highest values of `error_induced / bits_saved`, and then applies them in order until the desired number of GB have been removed.
 
+## Using patches
+
+To access quants other than `Q8_0`, `Q5_1` and `Q4_1` you need to provide a version of the model
+fully quantized into the other quants.
+
+- convert the model to gguf in full precision (use city96/ComfyUI-GGUF)
+    - `python tools/convert.py --src flux1-dev.safetensors --dst flux1-dev-BF16.ggufq`
+- compile llama-quantize (see city96/ComfyUI-GGUF/tools)
+- convert the full precision model to another quant 
+    - `llama-quantize flux1-dev-BF16.gguf Q3_K`
+    - `mv xxx flux1-dev-Q3_K.gguf`
+- use a castto value of `patch:flux1-dev-Q3_K.gguf` for the layers you want
+
 ## Future considerations
 
 - measurement of inference speed for different quants
