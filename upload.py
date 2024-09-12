@@ -8,7 +8,7 @@ def upload(local_filepath):
     remote_filepath = remote( os.path.basename(local_filepath) )
     hf = HfFileSystem()
     hf.put_file(lpath=local_filepath, rpath=remote_filepath)
-
+ 
 def main():
     a = argparse.ArgumentParser()
     b = a.add_mutually_exclusive_group(required=True)
