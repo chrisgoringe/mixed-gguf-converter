@@ -1,5 +1,5 @@
 from gguf import GGUFReader
-import math, argparse, torch
+import math, argparse, torch, os
 from safetensors.torch import load_file
 
 def measure(tensor_iter, count_function, byte_function) -> tuple[int,int]:
@@ -21,13 +21,15 @@ def measure_safetensors(file) -> tuple[int,int]:
 
 def main():
     a = argparse.ArgumentParser()
-    a.add_argument('--file', required=True)
+    a.add_argument('--load', required=True)
+    a.add_argument('--model_dir', help="base directory for all models")
     args = a.parse_args()
-    if args.file.endswith("gguf"):
-        parameters, bytes = measure_gguf(args.file)
+    file_load = os.path.join(args.model_dir, args.load) if args.model_dir else args.load
+    if file_load.endswith("gguf"):
+        parameters, bytes = measure_gguf(file_load)
     else:
-        parameters, bytes = measure_safetensors(args.file)
-    print(f"{args.file} has {8*bytes/parameters:>3.1f} bits per parameter (parameters: {int(parameters)})")
+        parameters, bytes = measure_safetensors(file_load)
+    print(f"{args.load} has {8*bytes/parameters:>3.1f} bits per parameter (parameters: {int(parameters)})")
     
 
 
