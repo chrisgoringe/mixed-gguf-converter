@@ -10,7 +10,6 @@ casts_and_bits = {
     'Q5_1':6,
     'Q5_K_S':5.5, 
     'Q4_1':5, 
-    'Q4_1':5, 
     'Q4_K_S':4.5, 
     'Q4_0':4.5, 
     'Q3_K_S':3.4375,
@@ -169,10 +168,21 @@ def convert_to_config(casting:list[CastingStep]):
     casting_list = list( {'layers':to_comma_list(cast_to_layer_map[cast]), 'castto':cast} for cast in cast_to_layer_map )
     return casting_list
 
-if __name__=='__main__': 
+def main():
     a = ArgumentParser()
     a.add_argument('--gb', type=float, required=True, help="Approximate number of GB to remove")
+    a.add_argument('--q', action='append', help="Allow this quant as well as as Q8_0, Q5_1 and Q4_1. Can be repeated. --q all for all.")
     args = a.parse_args()
+    global available_casts
+    if args.q: 
+        if 'all' in args.q:
+            available_casts = [k for k in casts_and_bits]
+        else:
+            available_casts += args.q
+    if not all(q in casts_and_bits for q in available_casts):
+        print(f"Available quants are {[q for q in casts_and_bits]}")
+        return
+    available_casts.sort(key=lambda a:casts_and_bits[a], reverse=True)
 
     casting, gbs = get_optimised_casting(args.gb)
 
@@ -186,3 +196,4 @@ if __name__=='__main__':
     print("        'notes': 'replace this with a comment!'")
     print("    },")
     
+if __name__=='__main__': main()

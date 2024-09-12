@@ -93,6 +93,8 @@ fully quantized into the other quants.
     - `mv xxx flux1-dev-Q3_K.gguf`
 - use a castto value of `patch:flux1-dev-Q3_K.gguf` for the layers you want
 
+You can use `optimization.py` with `--q Q3_K` to get an optimised quantization with the additional patches.
+
 ## Future considerations
 
 - measurement of inference speed for different quants
