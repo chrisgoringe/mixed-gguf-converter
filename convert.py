@@ -7,7 +7,7 @@ import torch
 from argparse import ArgumentParser
 import os, time
 from tqdm import tqdm
-
+from .measure import measure_file
 
 CONFIGURATIONS = {
     "9_6" : { 
@@ -59,7 +59,16 @@ CONFIGURATIONS = {
         'notes': 'Requires a Q3_K_S quantized version to patch from '
     },
     # Insert configs created by optimization.py in here. Note that in python the indentation matters, so copy and paste with care
-
+    "9_2" : {
+        'casts': [
+            {'layers': '0-8, 10, 12', 'castto': 'BF16'},
+            {'layers': '9, 11, 13-21, 49-54', 'castto': 'patch:flux1-dev-Q6_K.gguf'},
+            {'layers': '22-34, 41-48, 55', 'castto': 'patch:flux1-dev-Q5_K_S.gguf'},
+            {'layers': '35-40', 'castto': 'patch:flux1-dev-Q4_K_S.gguf'},
+            {'layers': '56', 'castto': 'Q4_1'},
+        ],
+        'notes': 'Perfect for 16GB cards'
+    },
     # ------
 }
 
@@ -130,11 +139,11 @@ def convert(infile, outfile, config):
                 return cast
         for key in sd: write( prefix+key, sd[key], get_cast)
 
-    log("(e) Applying patch: entries")
+    log(f"(e) Applying patches {[p in patchfiles]}")
     for patchfile, keys in patchfiles.items():
         reader = GGUFReader(modelpath(patchfile))
         tensor:ReaderTensor
-        for tensor in reader.tensors:
+        for tensor in tqdm(reader.tensors, desc=patchfile):
             if tensor.name in keys:
                 writer.add_tensor(tensor.name, tensor.data, raw_dtype=tensor.tensor_type)
                 log(f"{tensor.name:>50} {tensor.tensor_type.name:<20}", log.DETAILS)
@@ -144,6 +153,10 @@ def convert(infile, outfile, config):
     writer.write_kv_data_to_file()
     writer.write_tensors_to_file()
     writer.close()
+
+    log(f"(g) Measuring {outfile}...", end="")
+    p, b = measure_file(outfile)
+    log(f" {8*b/p:>4.1f} bits per parameter")
 
 def main():
     a = ArgumentParser(add_help=False)

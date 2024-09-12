@@ -102,12 +102,12 @@ class Log(SingletonAddin):
     def set_log_level(self, level:int):
         self.level = level
 
-    def __call__(self, message, level=1, once_only=False):
+    def __call__(self, message, level=1, once_only=False, **kwargs):
         if self.level>=level: 
             if once_only:
                 if message in self.onces: return
                 self.onces.append(message)
-            print(f"{time.monotonic()-self.start_time:>8.1f}s : {message}")
+            print(f"{time.monotonic()-self.start_time:>8.1f}s : {message}", **kwargs)
    
 shared = SharedSD.instance()
 log = Log.instance()
