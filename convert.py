@@ -107,7 +107,7 @@ def main():
         print(configurations.all_as_string_with_notes)
         return
     else:
-        if not args.all or args.config:
+        if not (args.all or args.config):
             print("One of --h, --list, --all or --config is required")
             return
     
