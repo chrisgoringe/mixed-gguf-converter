@@ -172,8 +172,8 @@ def main():
     a = ArgumentParser()
     a.add_argument('--gb', type=float, required=True, help="Approximate number of GB to remove")
     a.add_argument('--q', action='append', help="Allow this quant as well as as Q8_0, Q5_1 and Q4_1. Can be repeated. --q all for all.")
-    a.add_argument('--add', help="Save the resulting configuration")
-    a.add_argument('--add_as', default="NEW_CONFIG", help="Use this name as the key (with --add)")
+    a.add_argument('--add', action="store_true", help="Save the resulting configuration")
+    a.add_argument('--add_as', default="NEW", help="Use this name as the key (with --add)")
     args = a.parse_args()
     global available_casts
     if args.q: 

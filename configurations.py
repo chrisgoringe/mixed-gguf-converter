@@ -50,7 +50,7 @@ class Configurations(PathHandler):
         keys = [k for k in self.configurations]
         try:
             keys.sort(key = lambda a:float(a.replace('_','.')))
-        except TypeError:
+        except ValueError:
             print("Failed to sort configurations into order")
         self._configurations = { k:self.configurations[k] for k in keys }
         self.configurations = self._configurations
@@ -70,11 +70,11 @@ class Configurations(PathHandler):
             print(f"{key} already in configuration list - not adding")
             return
         try: float(key.replace('_','.'))
-        except KeyError: 
+        except ValueError: 
             print(f"{key} not in the form X_X, XX_X, or similar")
             if allow_bad_key: print(f"Adding it, but you will want to use configuration.py --rename {key}:X_X to rename it")
             else: return
-        self[key] = { "casts" : casts, "notes" : notes }
+        self.configurations[key] = { "casts" : casts, "notes" : notes }
     
     def as_string_with_notes(self, k):
         string = f"{k:>6} {self[k]['notes']}"
