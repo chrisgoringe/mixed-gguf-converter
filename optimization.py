@@ -189,11 +189,11 @@ def main():
     y = convert_to_config(casting)
     #tenths = math.floor( 10*gbs + 0.5 )
     #name = f"{tenths//10}_{tenths%10}"
-    print(f"\n    \"CONFIG_NAME\" : " + "{")
-    print("        'casts': [")
-    for cast in y: print("            {'layers': '" + cast['layers'] + "', 'castto': '" + cast['castto'] + "'},")
-    print("        ],")
-    print("        'notes': 'replace this with a comment!'")
-    print("    },")
+    print    (f"  'NAME':")
+    print    (f"    casts:")
+    for cast in y:
+        print(f"    - castto: {cast['castto']}")
+        print(f"      layers: {cast['layers']}")
+    print    (f"    notes: added by optimization.py")
     
 if __name__=='__main__': main()

@@ -14,16 +14,19 @@ def main():
     b = a.add_mutually_exclusive_group(required=True)
     b.add_argument('--dir', help="Upload all gguf files in this directory")
     b.add_argument('--file', help="Upload this file")
+    a.add_argument('--model_dir', help="base directory for all models")
 
     a = a.parse_args()
 
     if a.dir:
-        files = [os.path.join(a.dir,f) for f in os.listdir(a.dir) if os.path.splitext(f)[-1]=='.gguf']
-        if not files: raise Exception(f"No .gguf files in {a.dir}")
+        directory = os.path.join(a.model_dir, a.dir) if a.model_dir else a.dir
+        files = [os.path.join(directory,f) for f in os.listdir(directory) if os.path.splitext(f)[-1]=='.gguf']
+        if not files: raise Exception(f"No .gguf files in {directory}")
     else:
-        files = [a.file,]
-        if not os.path.exists(a.file): raise Exception(f"{a.file} not found")
-        if not os.path.splitext(a.file)[-1]=='.gguf': raise Exception(f"{a.file} not a .gguf file")
+        file = os.path.join(a.model_dir, a.file) if a.model_dir else a.file
+        if not os.path.exists(file): raise Exception(f"{file} not found")
+        if not os.path.splitext(file)[-1]=='.gguf': raise Exception(f"{file} not a .gguf file")
+        files = [file,]
 
     for file in files:
         upload(file)

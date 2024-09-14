@@ -36,6 +36,11 @@ def convert(infile, outfile, config):
         for layer_index in layer_iteratable_from_string(nod['layers']):
             layer_casts[layer_index] = cast
 
+    problems = configurations.list_patch_problems( [nod['castto'] for nod in config['casts']] )
+    if problems:
+        print("\n".join(problems))
+        return
+
     log ("(b) Loading layer stack")
     layers = load_layer_stack()
 
@@ -69,7 +74,7 @@ def convert(infile, outfile, config):
                 return cast
         for key in sd: write( prefix+key, sd[key], get_cast)
 
-    log(f"(e) Applying patches {[p in patchfiles]}")
+    log(f"(e) Applying patches {[p for p in patchfiles]}")
     for cast, keys in patchfiles.items():
         reader = GGUFReader(configurations.patchpath(cast))
         tensor:ReaderTensor
@@ -78,14 +83,14 @@ def convert(infile, outfile, config):
                 writer.add_tensor(tensor.name, tensor.data, raw_dtype=tensor.tensor_type)
                 log(f"{tensor.name:>50} {tensor.tensor_type.name:<20}", log.DETAILS)
 
-    log(f"(f) Writing to {outfile}")
+    log(f"(f) Writing to {configurations.modelpath(outfile)}")
     writer.write_header_to_file()
     writer.write_kv_data_to_file()
     writer.write_tensors_to_file()
     writer.close()
 
-    log(f"(g) Measuring {outfile}...", end="")
-    p, b = measure_file(outfile)
+    log(f"(g) Measuring {configurations.modelpath(outfile)}...", end="")
+    p, b = measure_file(configurations.modelpath(outfile))
     log(f" {8*b/p:>4.1f} bits per parameter")
 
 def main():

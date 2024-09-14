@@ -1,4 +1,6 @@
-import yaml, os, re
+import yaml, os, re, argparse
+
+class PatchFileException(Exception): pass
 
 class Configurations:
     _instance = None
@@ -12,21 +14,61 @@ class Configurations:
             loaded = yaml.safe_load(f)
             self.configurations = loaded['configurations']
             self.metadata = loaded['metadata']
-            self.natives = [q.strip() for q in self.metadata['native'].split(",")] + ["BF16",]
+            self.natives = [q.strip() for q in self.metadata['native'].split(",")]
         self.base_dir:str     = None
         self.base_patcher:str = None
+        self.need_to_save = False
 
     def __iter__(self):
         for key in self.configurations: yield key
 
+    def __contains__(self, k): return k in self.configurations
+
+    def sort(self):
+        keys = [k for k in self.configurations]
+        try:
+            keys.sort(key = lambda a:float(a.replace('_','.')))
+        except TypeError:
+            print("Failed to sort configurations into order")
+        self._configurations = { k:self.configurations[k] for k in keys }
+        self.configurations = self._configurations
+        self.need_to_save = True
+
+    def save(self):
+        if self.need_to_save:
+            self.sort()
+            tosave = { 'metadata' : self.metadata, 'configurations': self.configurations }
+            with open('configurations.yaml', 'w') as f:
+                yaml.safe_dump(tosave, f)
+        self.need_to_save = False
+
+    def rename(self, on, nn):
+        self.configurations[nn] = self.configurations.pop(on)
+        self.need_to_save = True
+
+    def remove(self, on):
+        self.configurations.pop(on)
+        self.need_to_save = True
+
     def modelpath(self, model): 
         return os.path.join(self.base_dir, model) if self.base_dir else model
     
-    def patchpath(self, cast):
+    def patchpath(self, cast, exception_if_absent=True):
         if self.base_patcher is None: 
-            raise Exception(f"--patch is required for any casts not in {self.natives}")
+            raise PatchFileException(f"--patch is required for {cast}")
         this_patcher = re.sub("Q[0-9_KLMS]*", cast, self.base_patcher)
-        return self.modelpath(this_patcher)
+        path = self.modelpath(this_patcher)
+        if not os.path.exists(path):
+            raise PatchFileException(f"File {path}, required for {cast}, is missing (check --patch points to it, or to another patch file alongside it)")
+        return path
+    
+    def list_patch_problems(self, casts:list[str]) -> list[str]:
+        probs = []
+        for c in casts:
+            if not self.available_natively(c):
+                try: self.patchpath(c)
+                except PatchFileException as e: probs.append(e.args[0])
+        return probs
 
     def configuration(self, key):
         return self.configurations[key]
@@ -48,3 +90,39 @@ class Configurations:
     def available_natively(self, q): return q in self.natives
 
 configurations = Configurations.instance()
+
+def main():
+    a = argparse.ArgumentParser(description="List or edit the configuration list")
+    b = a.add_mutually_exclusive_group()
+    b.add_argument('--rename', help="--rename FROM:TO renames the configuration 'FROM' to 'TO")
+    b.add_argument('--remove', help="Remove a configuration")
+    b.add_argument('--sort', action="store_true", help="Sort the configuration list")
+    
+    a = a.parse_args()
+    
+    if a.rename:
+        names = tuple(x.strip() for x in a.rename.split(':'))
+        if len(names)==2:
+            oldname, newname = names
+            if oldname in configurations:
+                if newname not in configurations:
+                    configurations.rename(oldname, newname)
+                else: print(f"{newname} already exists")
+            else: print(f"{oldname} not a configuration")
+        else: print(f"Usage: configuration.py --rename from:to")
+        
+    elif a.remove:
+        if a.remove in configurations:
+            configurations.remove(a.remove)
+        else: print(f"{a.remove} not in configurations")
+
+    elif a.sort:
+        configurations.sort()
+
+    else:
+        print(configurations.all_as_string_with_notes)
+
+
+if __name__=='__main__': 
+    main()
+    configurations.save()

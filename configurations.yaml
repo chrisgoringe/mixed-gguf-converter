@@ -1,6 +1,4 @@
-'metadata':
-  'native': Q4_1,Q5_1,Q8_0
-'configurations':
+configurations:
   '5_1':
     casts:
     - castto: Q4_1
@@ -33,6 +31,21 @@
     - castto: Q4_1
       layers: 34-41, 56
     notes: roughly same size as 8bit model
+  '7_6':
+    casts:
+    - castto: BF16
+      layers: 0-3, 10
+    - castto: Q6_K
+      layers: 4-9, 11, 13-20, 50-54
+    - castto: Q8_0
+      layers: 12
+    - castto: Q5_K_S
+      layers: 21-33, 43-49, 55
+    - castto: Q4_K_S
+      layers: 34-42
+    - castto: Q4_1
+      layers: 56
+    notes: added by optimization.py
   '8_4':
     casts:
     - castto: BF16
@@ -68,3 +81,5 @@
     - castto: Q4_1
       layers: 37-38, 56
     notes: might just fit on a 16GB card
+metadata:
+  native: Q4_1,Q5_1,Q8_0,BF16,F32
