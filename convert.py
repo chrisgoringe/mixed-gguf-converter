@@ -127,7 +127,7 @@ def main():
         log("----------------------------------------------------------------------------", log.ALWAYS)
         log(f"Conversion {i+1}/{len(configs)} - Converting {args.load} to {outfile}", log.ALWAYS)
         log("----------------------------------------------------------------------------", log.ALWAYS)
-        convert(infile  = args.load, outfile = outfile, config = configurations.configuration(config))
+        convert(infile  = args.load, outfile = outfile, config = configurations[config])
 
 if __name__=='__main__': 
     main()

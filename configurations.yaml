@@ -3,7 +3,7 @@ configurations:
     casts:
     - castto: Q4_1
       layers: 0-56
-    notes: full Q4_1 quantization
+    notes: full Q4_1 quantization. No patches
   '5_3':
     casts:
     - castto: Q5_1
@@ -19,7 +19,7 @@ configurations:
       layers: 0-25, 27-28, 44-54
     - castto: Q4_1
       layers: 26, 29-43, 55-56
-    notes: should work on 12GB card
+    notes: should work on 12GB card. No patches
   '7_4':
     casts:
     - castto: BF16
@@ -30,7 +30,7 @@ configurations:
       layers: 3-4, 6, 13-33, 42-55
     - castto: Q4_1
       layers: 34-41, 56
-    notes: roughly same size as 8bit model
+    notes: roughly same size as 8bit model. No patches
   '7_6':
     casts:
     - castto: BF16
@@ -45,7 +45,7 @@ configurations:
       layers: 34-42
     - castto: Q4_1
       layers: 56
-    notes: added by optimization.py
+    notes: Aiming for 12GB cards
   '8_4':
     casts:
     - castto: BF16
@@ -56,7 +56,7 @@ configurations:
       layers: 15-35, 41-55
     - castto: Q4_1
       layers: 36-40, 56
-    notes: good balance for 16GB card
+    notes: good balance for 16GB card. No patches
   '9_2':
     casts:
     - castto: BF16
@@ -69,7 +69,7 @@ configurations:
       layers: 35-40
     - castto: Q4_1
       layers: '56'
-    notes: Perfect for 16GB cards
+    notes: Perfect for 16GB cards?
   '9_6':
     casts:
     - castto: BF16
@@ -80,6 +80,6 @@ configurations:
       layers: 15-36, 39-53, 55
     - castto: Q4_1
       layers: 37-38, 56
-    notes: might just fit on a 16GB card
+    notes: might just fit on a 16GB card. No patches
 metadata:
   native: Q4_1,Q5_1,Q8_0,BF16,F32

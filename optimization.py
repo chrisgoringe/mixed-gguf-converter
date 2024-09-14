@@ -172,6 +172,8 @@ def main():
     a = ArgumentParser()
     a.add_argument('--gb', type=float, required=True, help="Approximate number of GB to remove")
     a.add_argument('--q', action='append', help="Allow this quant as well as as Q8_0, Q5_1 and Q4_1. Can be repeated. --q all for all.")
+    a.add_argument('--add', help="Save the resulting configuration")
+    a.add_argument('--add_as', default="NEW_CONFIG", help="Use this name as the key (with --add)")
     args = a.parse_args()
     global available_casts
     if args.q: 
@@ -186,14 +188,21 @@ def main():
 
     casting, gbs = get_optimised_casting(args.gb)
 
-    y = convert_to_config(casting)
+    casting_list = convert_to_config(casting)
     #tenths = math.floor( 10*gbs + 0.5 )
     #name = f"{tenths//10}_{tenths%10}"
     print    (f"  'NAME':")
     print    (f"    casts:")
-    for cast in y:
+    for cast in casting_list:
         print(f"    - castto: {cast['castto']}")
         print(f"      layers: {cast['layers']}")
     print    (f"    notes: added by optimization.py")
+
+    if args.add:
+        from configurations import configurations
+        notes = f"Added using --gb {args.gb}"
+        if args.q: notes += " --q ".join(['',]+args.q)
+        configurations.add(key=args.add_as, casts=casting_list, notes=notes, allow_bad_key=True)
+        configurations.save()
     
 if __name__=='__main__': main()
