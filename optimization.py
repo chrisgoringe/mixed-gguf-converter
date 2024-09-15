@@ -202,7 +202,7 @@ def main():
         from configurations import configurations
         notes = f"Added using --gb {args.gb}"
         if args.q: notes += " --q ".join(['',]+args.q)
-        configurations.add(key=args.add_as, casts=casting_list, notes=notes, allow_bad_key=True)
+        configurations.add(key=args.add_as, casts=casting_list, notes=notes, gb=f"--gb {args.gb}", allow_bad_key=True)
         configurations.save()
     
 if __name__=='__main__': main()
