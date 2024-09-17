@@ -61,11 +61,11 @@ class Configurations(PathHandler):
         with open('configurations.yaml', 'w') as f:
             yaml.safe_dump(tosave, f)
 
-    def rename(self, on, nn):         self[nn] = self.pop(on)
+    def rename(self, on, nn):         self.configurations[nn] = self.pop(on)
     def remove(self, on):             self.pop(on)
     def edit_notes(self, key, notes): self[key]['notes'] = notes
 
-    def add(self, key:str, casts:list[dict[str,str]], notes:str, allow_bad_key=False):
+    def add(self, key:str, casts:list[dict[str,str]], notes:str, allow_bad_key=False, **kwargs):
         if key in self:
             print(f"{key} already in configuration list - not adding")
             return
@@ -75,6 +75,7 @@ class Configurations(PathHandler):
             if allow_bad_key: print(f"Adding it, but you will want to use configuration.py --rename {key}:X_X to rename it")
             else: return
         self.configurations[key] = { "casts" : casts, "notes" : notes }
+        for k in kwargs: self.configurations[key][k] = kwargs[k]
     
     def as_string_with_notes(self, k):
         string = f"{k:>6} {self[k]['notes']}"
