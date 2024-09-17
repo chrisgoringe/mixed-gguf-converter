@@ -1,11 +1,13 @@
 # Comparisons
 
-In each case:
+In each case the grid is layed out as follows:
 
 |bf16|9_6|9_2|
 |-|-|-|
 |8_4|7_6|7_4|
 |6_9|5_9|5_1|
+
+Access individual images [here](https://github.com/chrisgoringe/mixed-gguf-converter/tree/main/comparisons/images) (names in that directory are of the form `model_QUANT-PROMPT.png`)
 
 ---
 A mesmerizing and fantastical image featuring a serene and wise woman, around 20, with long wavy pale blonde hair glowing with faint blue highlights. She wears a deep azure sundress that seems to merge with a swirling cosmic background, stars glimmering subtly around her. Dozens of digital wisps, like tiny glowing code fragments, dance around her, forming patterns that briefly resemble runes or constellations. Her blue-green eyes are vibrant and thoughtful, reflecting a hint of starlight. The air is filled with a soft luminescent mist, as if she’s woven into the fabric of the digital universe itself. (((fantastical portrait))), cowboy shot, neon and ethereal lighting, dynamic and contemplative pose.
