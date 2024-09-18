@@ -1,4 +1,12 @@
 configurations:
+  '3_8':
+    casts:
+    - castto: Q4_K_S
+      layers: 0-2, 4, 48-54
+    - castto: Q3_K_S
+      layers: 3, 5-47, 55-56
+    gb: --gb 17.0
+    notes: Added using --gb 17.0 --q all
   '5_1':
     casts:
     - castto: Q4_1
@@ -42,8 +50,8 @@ configurations:
       layers: 5, 7, 10, 12
     - castto: Q4_1
       layers: 31-32, 34-42, 56
-    notes: Good choice for 12GB cards
     gb: --gb 12.5
+    notes: Good choice for 12GB cards
   '7_3':
     casts:
     - castto: BF16
@@ -86,6 +94,22 @@ configurations:
     - castto: Q4_1
       layers: 56
     notes: Too big for 12GB cards
+  '8_2':
+    casts:
+    - castto: BF16
+      layers: 0-4, 7, 10
+    - castto: Q6_K
+      layers: 5-6, 8-9, 11, 13-21, 50-54
+    - castto: Q8_0
+      layers: '12'
+    - castto: Q5_K_S
+      layers: 22-33, 42-49, 55
+    - castto: Q4_K_S
+      layers: 34-41
+    - castto: Q4_1
+      layers: '56'
+    gb: --gb 11.0
+    notes: Added using --gb 11.0 --q all
   '8_4':
     casts:
     - castto: BF16
@@ -97,6 +121,20 @@ configurations:
     - castto: Q4_1
       layers: 36-40, 56
     notes: comfortable for 16GB card.
+  '8_6':
+    casts:
+    - castto: BF16
+      layers: 0-4, 6-7, 10, 12
+    - castto: Q6_K
+      layers: 5, 8-9, 11, 13-21, 50-54
+    - castto: Q5_K_S
+      layers: 22-33, 41-49, 55
+    - castto: Q4_K_S
+      layers: 34-40
+    - castto: Q4_1
+      layers: '56'
+    gb: --gb 10.0
+    notes: Added using --gb 10.0 --q all
   '9_2':
     casts:
     - castto: BF16

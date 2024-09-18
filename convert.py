@@ -25,7 +25,7 @@ VERBOSITY = 0
 
 
 
-def convert(infile, outfile, config):
+def convert(infile, outfile, config, isnew):
     default_cast = 'F32'
     shared.set_model(configurations.modelpath(infile), dump_existing=True)
         
@@ -91,12 +91,16 @@ def convert(infile, outfile, config):
 
     log(f"(g) Measuring {configurations.modelpath(outfile)}...", end="")
     p, b = measure_file(configurations.modelpath(outfile))
-    log(f" {8*b/p:>4.1f} bits per parameter")
+    bpp = 8*b/p
+    log(f" {bpp:>4.1f} bits per parameter")
+
+    if isnew:
+        log(f" Consider running python configurations.py --rename NEW:{int(bpp)}_{int((bpp%1)*10)}")
 
 def main():
     a = ArgumentParser(description=HELP_TEXT)
     a.add_argument('--load', default="flux1-dev.safetensors", help="Base model to convert")
-    a.add_argument('--patch', help="A model from which patches can be extracted (only need to specify one)")
+    a.add_argument('--patch', help="A model from which patches can be extracted (only need to specify one). Optional, guessed if absent")
 
     c = a.add_mutually_exclusive_group()
     c.add_argument('--config', action="append", choices=configurations.as_list, help="Which configuration(s) to run (can be used multiple times)")
@@ -117,7 +121,7 @@ def main():
             return
     
     configurations.base_dir     = args.model_dir
-    configurations.base_patcher = args.patch
+    configurations.base_patcher = args.patch or os.path.splitext(args.load)[0]+"-Q6_K.gguf"
     
     log.set_log_level(args.verbose)
     
@@ -127,7 +131,7 @@ def main():
         log("----------------------------------------------------------------------------", log.ALWAYS)
         log(f"Conversion {i+1}/{len(configs)} - Converting {args.load} to {outfile}", log.ALWAYS)
         log("----------------------------------------------------------------------------", log.ALWAYS)
-        convert(infile  = args.load, outfile = outfile, config = configurations[config])
+        convert(infile  = args.load, outfile = outfile, config = configurations[config], isnew = (config=='NEW'))
 
 if __name__=='__main__': 
     main()
