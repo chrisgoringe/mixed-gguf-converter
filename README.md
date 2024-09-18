@@ -14,89 +14,94 @@ A collection of already converted files can be found in my [hugging face](https:
 ## Usage
 
 ```
-python convert.py [-h] [--verbose=n] [--load [flux_model].safetensors] [--config x_x] [--config x_x] [--config x_x]
+python convert.py [-h] [--load LOAD] [--patch PATCH] [--config X_Y] [--verbose VERBOSE] [--model_dir MODEL_DIR] [--list]
 ```
 
-- `--verbose` for n = 0,1,2 controls the output verbosity
-    - Default is 1
+- `--model_dir` optional: the directory all models are found in
 - `--load` the model to be converted. 
     - Should be a local file `[flux_model].safetensors`, and a full 16 bit verion (ideally). 
-    - Default is `./flux1-dev.safetensors`
-- `--config` used zero or more times to specify the configurations to be used. 
+    - Default is `flux1-dev.safetensors`, in the directory specified by `--model_dir`
+- `--config` used one or more times to specify the configurations to be used. 
     - Each will be saved in a file `[flux_model]_mx[config].gguf`
-    - Default is to apply all available configurations in turn.
-- `-h` can be used to list the help, including the config options available (and no conversion is done)
+    - `--config all` will generate every available configuration
+- `--list` prints a list of available configurations and exits
+- `--verbose` for n = 0,1,2 controls the output verbosity
+    - Default is 1
+- `--patch` one of the required patch file (optional, if required but not provided convert will try to work it out)
 
-Configs are of the form `Y_Z` (Y and Z being digits) for an average number of bits per parameter of `Y.Z`.
+The output files will be in the same directory as the file loaded, and named `[base_name]_mxX_Y.gguf`
+They should be placed in `models/unet` and can be loaded with [GGUF Loader Node](https://github.com/city96/ComfyUI-GGUF).
+
+## Configurations
+
+Configs are of the form `Y_Z` (Y and Z being digits) for an average number of bits per parameter of `Y.Z`. 
+
+At time of writing, `python convert.py --list` shows:
 ```
-Configurations current available are:
- 9_6 might just fit on a 16GB card
- 8_4 good balance for 16GB card
- 7_4 roughly same size as 8bit model
- 5_9 should work on 12GB card
- 5_1 full Q4_1 quantization - smallest currently available
-```
-
-The output files should be placed in `models/unet` and can be loaded with [GGUF Loader Node](https://github.com/city96/ComfyUI-GGUF).
-
-Be aware this can take a long time to run, but it gives you progress reports...
-
-## Creating new configurations
-
-If you want to try a different model reduction, you can quickly create it with `optimization.py`
-
-To make an optimization that removes `xx.yy` GB from the model:
-
-```
-python optimization.py --gb xx.yy
-```
-
-The output will look like this:
-
-```
-Full model is 22.043 GB
- 4.161 GB saved at cost of 38.600
-
-    "CONFIG_NAME" : {
-        'casts': [
-            {'layers': '0-23', 'castto': 'BF16'},
-            {'layers': '24-38, 40-55', 'castto': 'Q8_0'},
-            {'layers': '39, 56', 'castto': 'Q5_1'},
-        ],
-        'notes': 'replace this with a comment!'
-    },
-```
-Ignoring the first two lines (and the blank line), you have a configuration option that can be added to `convert.py` as instructed in the code (around line 50).
-
-You will want the change `CONFIG_NAME` to reflect the actual size. 
-To measure a gguf file (after converting it), `python measure.py --f MY_FILE.gguf`
-
-```
-python measure.py --file flux1-dev_mx8_4.gguf 
-flux1-dev_mx8_4.gguf has 8.4 bits per parameter
+   3_8 Good for 8Gb card? (requires patch file(s) for Q4_K_S, Q3_K_S)
+   5_1 full Q4_1 quantization. 
+   5_3 pretty small (requires patch file(s) for Q3_K_S)
+   5_9 should work on 12GB card.
+   6_6 Comfortable on 12 GB cards
+   6_9 Good choice for 12GB cards
+   7_3 Aiming for 12GB cards (requires patch file(s) for Q6_K, Q5_K_S, Q4_K_S)
+   7_4 roughly same size as 8bit model.
+   7_6 Too big for 12GB cards (requires patch file(s) for Q6_K, Q5_K_S, Q4_K_S)
+   8_2 Added using --gb 11.0 --q all (requires patch file(s) for Q6_K, Q5_K_S, Q4_K_S)
+   8_4 comfortable for 16GB card.
+   8_6 Added using --gb 10.0 --q all (requires patch file(s) for Q6_K, Q5_K_S, Q4_K_S)
+   9_2 Best for 16GB cards (requires patch file(s) for Q6_K, Q5_K_S, Q4_K_S)
+   9_6 might just fit on a 16GB card.
 ```
 
-## Notes
+Some configurations require one or more 'patch files'. This is because only some
+quantizations (Q8_0, Q5_1, Q4_1) can be done natively by convert.py.
 
-The script works by calculating a sequence of possible quantizations, sorting them from the lowest to highest values of `error_induced / bits_saved`, and then applies them in order until the desired number of GB have been removed.
+A patch file is a version of the original model that has been converted to gguf using other tools.
+The process (in summary) is:
 
-## Using patches
-
-To access quants other than `Q8_0`, `Q5_1` and `Q4_1` you need to provide a version of the model
-fully quantized into the other quants.
-
-- convert the model to gguf in full precision (use city96/ComfyUI-GGUF)
-    - `python tools/convert.py --src flux1-dev.safetensors --dst flux1-dev-BF16.ggufq`
-- compile llama-quantize (see city96/ComfyUI-GGUF/tools)
+- convert the model to gguf in full precision 
+    - (use city96/ComfyUI-GGUF) `python tools/convert.py --src flux1-dev.safetensors --dst flux1-dev-BF16.ggufq`
+- compile llama-quantize (see city96/ComfyUI-GGUF/tools on how to do this)
 - convert the full precision model to another quant 
     - `llama-quantize flux1-dev-BF16.gguf Q3_K`
     - `mv xxx flux1-dev-Q3_K.gguf`
-- use a castto value of `patch:flux1-dev-Q3_K.gguf` for the layers you want
 
-You can use `optimization.py` with `--q Q3_K` to get an optimised quantization with the additional patches.
+Otherwise, just use the configurations that don't need a patch!
 
-## Future considerations
+## Creating new configurations
 
-- measurement of inference speed for different quants
-- possible inclusion of `torch.float8_e3m4fn` (significantly less accurate that GGUF, but also faster)
-- work out how to include other (more recent, better) quants like `Q5_K_S`, `Q5_K_S`, `Q5_K_S`
+If you want to try a different model reductions, you can add new configurations with `optimization.py`.
+
+```
+python optimization.py [-h] --gb GB [--q Q] [--add] [--add_as ADD_AS]
+```
+
+- `--gb gb` Attempt to remove apprpximately gb Gb from the full (22GB) model.
+- `--q Q` by default, `optimization.py` will not assume there are patches available. If you have some, you can indicate that they are available with `--q Q4_K_S` (for instance). `--q all` will allow any quantization to be used.
+- `--add` add this configuration to the database (`configurations.yaml`) so `convert.py` can use it
+- `--add_as` use this name for the configuration (optional, default is `NEW`)
+
+Normal workflow would be:
+- try optimization.py a few times with different values of `--gb`
+- run it with `--add`
+- run `convert.py` with `--config NEW`
+- at the end of the `convert.py` run it will tell you the actual bits per parameter, and suggest using `configurations.py` to give `NEW` a better name
+- do that, and rename the output file, and you are good to go!
+
+## Managing configurations
+
+```
+python configurations.py [-h] [--rename RENAME | --remove REMOVE | --sort | --notes NOTES]
+```
+
+- `--rename OLD:NEW` to rename a configuraion
+- `--remove NAME` to remove one
+- `--sort` to sort them into size order (generally gets done automatically)
+- `--notes NAME:notes` to change the notes associated with the configuration
+
+You can also just edit configurations.yaml directly!
+
+## How it works...
+
+The script works by calculating a sequence of possible quantizations, sorting them from the lowest to highest values of `error_induced / bits_saved` (from the costs directory), and then applies them in order until the desired number of GB have been removed.

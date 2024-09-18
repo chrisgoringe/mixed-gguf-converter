@@ -6,12 +6,12 @@ configurations:
     - castto: Q3_K_S
       layers: 3, 5-47, 55-56
     gb: --gb 17.0
-    notes: Added using --gb 17.0 --q all
+    notes: Good for 8Gb card?
   '5_1':
     casts:
     - castto: Q4_1
       layers: 0-56
-    notes: full Q4_1 quantization. No patches
+    notes: full Q4_1 quantization
   '5_3':
     casts:
     - castto: Q5_1
