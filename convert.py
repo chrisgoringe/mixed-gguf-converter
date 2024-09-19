@@ -95,7 +95,7 @@ def convert(infile, outfile, config, isnew):
     log(f" {bpp:>4.1f} bits per parameter")
 
     if isnew:
-        log(f" Consider running python configurations.py --rename NEW:{int(bpp)}_{int((bpp%1)*10)}")
+        log(f" Consider running python configurations.py --rename NEW:{int(bpp)}_{int((bpp%1 + 0.05)*10)}")
 
 def main():
     a = ArgumentParser(description=HELP_TEXT)

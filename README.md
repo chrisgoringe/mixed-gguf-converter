@@ -54,20 +54,33 @@ At time of writing, `python convert.py --list` shows:
    9_6 might just fit on a 16GB card.
 ```
 
-Some configurations require one or more 'patch files'. This is because only some
-quantizations (Q8_0, Q5_1, Q4_1) can be done natively by convert.py.
+See below for how to add new configurations.
 
-A patch file is a version of the original model that has been converted to gguf using other tools.
+## Patch files
+
+You will see that some configurations require one or more 'patch files'. This is because only some
+quantizations (Q8_0, Q5_1, Q4_1) can be done natively by convert.py. The other quantizations
+are merged in from models that have been fully quantized.
+
+City96 has produced a bunch of these models, you can download them from [hugging face](https://huggingface.co/city96/FLUX.1-dev-gguf).
+
+### Making your own patch files
+
+If you want other quantizations, or are converting a different model, you will need to make the patch files. *Warning* this is not trivial.
 The process (in summary) is:
 
+- compile llama-quantize
+    - This is not trivial. [City96's instructions](https://github.com/city96/ComfyUI-GGUF/tree/main/tools) are pretty good.
 - convert the model to gguf in full precision 
-    - (use city96/ComfyUI-GGUF) `python tools/convert.py --src flux1-dev.safetensors --dst flux1-dev-BF16.ggufq`
-- compile llama-quantize (see city96/ComfyUI-GGUF/tools on how to do this)
-- convert the full precision model to another quant 
-    - `llama-quantize flux1-dev-BF16.gguf Q3_K`
-    - `mv xxx flux1-dev-Q3_K.gguf`
-
-Otherwise, just use the configurations that don't need a patch!
+    - Using `convert.py` from [City96's tools](https://github.com/city96/ComfyUI-GGUF/tree/main/tools)
+```
+python tools/convert.py --src flux1-dev.safetensors --dst flux1-dev-BF16.gguf`
+```
+- convert the full precision model to another quant. For Q3_K:
+```
+llama-quantize flux1-dev-BF16.gguf Q3_K
+mv ggml-model-Q3_K.gguf flux1-dev-Q3_K.gguf
+```
 
 ## Creating new configurations
 

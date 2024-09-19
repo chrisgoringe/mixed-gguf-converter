@@ -35,7 +35,7 @@ def main():
 
     parameters, bytes = measure_file(file_load)
 
-    print(f"{args.load} has {8*bytes/parameters:>3.1f} bits per parameter (parameters: {int(parameters)})")
+    print(f"{args.load} has {8*bytes/parameters:>5.2f} bits per parameter (parameters: {int(parameters)})")
     
 
 

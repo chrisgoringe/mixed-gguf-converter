@@ -1,4 +1,14 @@
 configurations:
+  '3_0':
+    casts:
+    - castto: Q4_K_S
+      layers: 0, 51, 53-54
+    - castto: Q3_K_S
+      layers: 1-2, 18, 42-50, 52, 55-56
+    - castto: Q2_K
+      layers: 3-17, 19-41
+    gb: --gb 18.0
+    notes: Added using --gb 18.0 --q all
   '3_8':
     casts:
     - castto: Q4_K_S
